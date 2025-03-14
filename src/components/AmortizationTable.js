@@ -10,439 +10,324 @@ const AmortizationTable = ({
   onRemoveAmort
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchValue, setSearchValue] = useState('');
-  const [hoveredRow, setHoveredRow] = useState(null);
-  const [highlightedRow, setHighlightedRow] = useState(null);
-  const [editingAmort, setEditingAmort] = useState(null);
-  const [editValue, setEditValue] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredSchedule, setFilteredSchedule] = useState([]);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [expandedRow, setExpandedRow] = useState(null);
 
+  // Calculate paginated data and total pages
   useEffect(() => {
-    if (highlightedRow !== null) {
-      const timer = setTimeout(() => {
-        setHighlightedRow(null);
-      }, 2000);
-      
-      return () => clearTimeout(timer);
+    let result = [...schedule];
+    
+    // Apply search term filter if present
+    if (searchTerm.trim()) {
+      result = result.filter(row => {
+        const searchTermNum = parseInt(searchTerm);
+        if (!isNaN(searchTermNum)) {
+          return row.month === searchTermNum || 
+                 Math.abs(row.parcela - searchTermNum) < 10 ||
+                 Math.abs(row.saldoDevedor - searchTermNum) < 100;
+        }
+        return false;
+      });
     }
-  }, [highlightedRow]);
-
-  // Função para filtrar o cronograma com base na pesquisa
-  const filteredSchedule = schedule.filter(row => {
-    if (!searchValue) return true;
     
-    const searchTerm = searchValue.toLowerCase();
-    const monthStr = formatMonthDate(row.month);
+    setFilteredSchedule(result);
     
-    return (
-      row.month.toString().includes(searchTerm) ||
-      monthStr.toLowerCase().includes(searchTerm) ||
-      formatCurrency(row.parcela).toLowerCase().includes(searchTerm) ||
-      formatCurrency(row.amortizacaoMensal).toLowerCase().includes(searchTerm) ||
-      formatCurrency(row.juros).toLowerCase().includes(searchTerm)
-    );
-  });
+    // Reset to first page when filters change
+    setCurrentPage(1);
+  }, [schedule, searchTerm]);
 
-  // Paginação
-  const totalPages = Math.ceil(filteredSchedule.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedSchedule = filteredSchedule.slice(startIndex, startIndex + rowsPerPage);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const totalPages = Math.ceil(filteredSchedule.length / itemsPerPage);
+  
+  // Get current page data
+  const getCurrentPageData = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredSchedule.slice(startIndex, endIndex);
   };
 
-  const handleRowsPerPageChange = (e) => {
-    setRowsPerPage(parseInt(e.target.value));
+  const handleRowExpand = (month) => {
+    if (expandedRow === month) {
+      setExpandedRow(null);
+    } else {
+      setExpandedRow(month);
+    }
+  };
+
+  // Pagination controls
+  const handlePrevPage = () => {
+    setCurrentPage(currentPage => Math.max(1, currentPage - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(currentPage => Math.min(totalPages, currentPage + 1));
+  };
+
+  const handleJumpToStart = () => {
     setCurrentPage(1);
   };
 
-  // Função para destacar uma linha
-  const highlightRow = (index) => {
-    setHighlightedRow(index);
+  const handleJumpToEnd = () => {
+    setCurrentPage(totalPages);
   };
-
-  // Função para iniciar edição
-  const startEditing = (row) => {
-    setEditingAmort(row.month);
-    setEditValue(row.amortizacaoExtra.toString());
-  };
-
-  // Função para salvar edição
-  const saveEdit = () => {
-    const value = parseFloat(editValue);
-    if (!value || value <= 0) {
-      setEditValue('');
-      return;
+  
+  const handleJumpToMonth = (e) => {
+    e.preventDefault();
+    const month = parseInt(searchTerm.trim());
+    if (!isNaN(month) && month > 0 && month <= schedule.length) {
+      // Calculate page containing this month
+      const pageNum = Math.ceil(month / itemsPerPage);
+      setCurrentPage(pageNum);
     }
-    
-    // Check if value exceeds outstanding debt
-    const monthData = schedule.find(item => item.month === editingAmort);
-    if (value > monthData.saldoDevedor) {
-      setEditValue('');
-      return;
-    }
-
-    onEditAmort(editingAmort, value);
-    setEditingAmort(null);
-    setEditValue('');
   };
-
-  // Função para cancelar edição
-  const cancelEdit = () => {
-    setEditingAmort(null);
-    setEditValue('');
-  };
-
-  // Botões de navegação para paginação
-  const renderPagination = () => (
-    <div className="flex items-center justify-between py-3 border-t">
-      <div className="flex items-center">
-        <span className="text-sm text-gray-700">
-          Exibindo <span className="font-medium">{startIndex + 1}</span> a{' '}
-          <span className="font-medium">{Math.min(startIndex + rowsPerPage, filteredSchedule.length)}</span> de{' '}
-          <span className="font-medium">{filteredSchedule.length}</span> registros
-        </span>
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        <select
-          value={rowsPerPage}
-          onChange={handleRowsPerPageChange}
-          className="p-1.5 text-sm border rounded-md"
-        >
-          <option value={10}>10 por página</option>
-          <option value={25}>25 por página</option>
-          <option value={50}>50 por página</option>
-          <option value={100}>100 por página</option>
-        </select>
-        
-        <div className="flex items-center space-x-1">
-          <button
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-            className={`p-1.5 rounded-md ${
-              currentPage === 1
-                ? 'text-gray-400 cursor-default'
-                : 'text-blue-600 hover:bg-blue-50'
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-              <path fillRule="evenodd" d="M8.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L4.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-          
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`p-1.5 rounded-md ${
-              currentPage === 1
-                ? 'text-gray-400 cursor-default'
-                : 'text-blue-600 hover:bg-blue-50'
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
-          
-          {Array.from({ length: totalPages }, (_, i) => i + 1)
-            .filter(page => (
-              page === 1 || 
-              page === totalPages || 
-              (page >= currentPage - 1 && page <= currentPage + 1)
-            ))
-            .map((page, index, array) => {
-              // Adicionar reticências
-              if (index > 0 && page - array[index - 1] > 1) {
-                return (
-                  <React.Fragment key={`ellipsis-${page}`}>
-                    <span className="px-3 py-1.5 text-gray-500">...</span>
-                    <button
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1.5 rounded-md ${
-                        currentPage === page
-                          ? 'bg-blue-600 text-white'
-                          : 'text-blue-600 hover:bg-blue-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  </React.Fragment>
-                );
-              }
-              
-              return (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-3 py-1.5 rounded-md ${
-                    currentPage === page
-                      ? 'bg-blue-600 text-white'
-                      : 'text-blue-600 hover:bg-blue-50'
-                  }`}
-                >
-                  {page}
-                </button>
-              );
-            })}
-          
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`p-1.5 rounded-md ${
-              currentPage === totalPages
-                ? 'text-gray-400 cursor-default'
-                : 'text-blue-600 hover:bg-blue-50'
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
-          
-          <button
-            onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages}
-            className={`p-1.5 rounded-md ${
-              currentPage === totalPages
-                ? 'text-gray-400 cursor-default'
-                : 'text-blue-600 hover:bg-blue-50'
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 6.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              <path fillRule="evenodd" d="M11.293 15.707a1 1 0 010-1.414L15.586 10l-4.293-3.293a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
-    <div>
-      {/* Barra de pesquisa e filtros */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="relative w-64">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <input
-            type="text"
-            value={searchValue}
-            onChange={(e) => {
-              setSearchValue(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Pesquisar..."
-          />
+    <div className="w-full">
+      {/* Search and Export Controls */}
+      <div className="flex flex-wrap justify-between mb-4 gap-2">
+        <div className="flex items-center">
+          <form onSubmit={handleJumpToMonth} className="flex">
+            <input
+              type="text"
+              placeholder="Mês específico"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="border rounded-l-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button 
+              type="submit"
+              className="bg-blue-500 text-white px-2 py-2 rounded-r-md hover:bg-blue-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </form>
         </div>
         
-        {filteredSchedule.length > 0 && (
-          <div className="flex items-center space-x-2 text-sm text-gray-700">
-            <span>Ir para mês:</span>
-            <input
-              type="number"
-              min="1"
-              max={schedule.length}
-              className="w-16 py-1.5 px-2 border border-gray-300 rounded-md"
-              placeholder="Mês"
-              onChange={(e) => {
-                const month = parseInt(e.target.value);
-                if (month && month > 0 && month <= schedule.length) {
-                  const pageIndex = Math.ceil(month / rowsPerPage);
-                  setCurrentPage(pageIndex);
-                  // Destacar a linha por alguns segundos
-                  highlightRow(month - 1);
-                }
-              }}
-            />
+        <div className="flex items-center gap-2">
+          <select
+            value={itemsPerPage}
+            onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
+            className="border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="12">12 por página</option>
+            <option value="24">24 por página</option>
+            <option value="36">36 por página</option>
+            <option value="120">120 por página</option>
+          </select>
+          
+          <div className="flex items-center border rounded-md">
+            <button
+              onClick={handleJumpToStart}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 ${currentPage === 1 ? 'text-gray-300' : 'text-blue-600 hover:bg-blue-50'}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 ${currentPage === 1 ? 'text-gray-300' : 'text-blue-600 hover:bg-blue-50'}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <span className="px-3 py-1 text-sm">
+              Página {currentPage} de {totalPages || 1}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className={`px-3 py-1 ${currentPage === totalPages || totalPages === 0 ? 'text-gray-300' : 'text-blue-600 hover:bg-blue-50'}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <button
+              onClick={handleJumpToEnd}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className={`px-3 py-1 ${currentPage === totalPages || totalPages === 0 ? 'text-gray-300' : 'text-blue-600 hover:bg-blue-50'}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 6.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0zm12 0a1 1 0 010-1.414L12.586 10l3.707-3.707a1 1 0 00-1.414-1.414l-5 5a1 1 0 000 1.414l5 5a1 1 0 001.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
           </div>
-        )}
+        </div>
       </div>
       
-      <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-md">
+      {/* Amortization Table */}
+      <div className="overflow-x-auto border border-gray-200 rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Mês
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Dívida Inicial
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Saldo Devedor
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Correção
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Dívida Corrigida
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Juros
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Amort. Mensal
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Seguro
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Parcela
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Amortização
               </th>
               {showAmortizationColumn && (
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Amort. Extra
                 </th>
               )}
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Saldo Final
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Parcela
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Ações
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedSchedule.map((row, i) => {
-              const rowIndex = startIndex + i;
-              const isHighlighted = rowIndex === highlightedRow;
-              
-              return (
-                <tr 
-                  key={rowIndex}
-                  className={`
-                    ${isHighlighted ? 'highlight-pulse' : ''} 
-                    ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-                    ${hoveredRow === rowIndex ? 'bg-blue-50' : ''}
-                    transition-colors duration-150
-                  `}
-                  onMouseEnter={() => setHoveredRow(rowIndex)}
-                  onMouseLeave={() => setHoveredRow(null)}
-                >
-                  <td className="px-4 py-3 whitespace-nowrap">
+            {getCurrentPageData().map((row) => (
+              <React.Fragment key={row.month}>
+                <tr className={row.tipoAmortizacao === 'prazo' ? 'bg-green-50' : (row.tipoAmortizacao === 'parcela' ? 'bg-blue-50' : '')}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <div className="flex items-center">
-                      <div className="text-sm font-medium text-gray-900">{row.month}</div>
-                      <div className="ml-2 text-xs text-gray-500">{formatMonthDate(row.month)}</div>
+                      <button 
+                        onClick={() => handleRowExpand(row.month)}
+                        className="mr-2 text-gray-400 hover:text-gray-600"
+                      >
+                        {expandedRow === row.month ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                      {row.month}
+                      <span className="ml-2 text-xs text-gray-500">
+                        {formatMonthDate(row.month)}
+                      </span>
+                      {row.tipoAmortizacao && (
+                        <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.tipoAmortizacao === 'prazo' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                          {row.tipoAmortizacao === 'prazo' ? 'Prazo' : 'Parcela'}
+                        </span>
+                      )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
                     {formatCurrency(row.saldoDevedor)}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">
-                    {formatCurrency(row.correction)}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                    {formatCurrency(row.dividaCorrigida)}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
                     {formatCurrency(row.juros)}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
                     {formatCurrency(row.amortizacaoMensal)}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">
-                    {formatCurrency(row.seguro)}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                    {formatCurrency(row.parcela)}
-                  </td>
                   {showAmortizationColumn && (
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {row.amortizacaoExtra > 0 ? (
-                        <div className="flex items-center justify-end">
-                          {editingAmort === row.month ? (
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                className="w-24 px-2 py-1 text-sm border rounded"
-                                autoFocus
-                              />
-                              <button 
-                                onClick={saveEdit}
-                                className="text-green-500 hover:text-green-700 hover:scale-125 hover:bg-green-100 transition-all cursor-pointer p-1 rounded"
-                                title="Salvar"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                              </button>
-                              <button 
-                                onClick={cancelEdit}
-                                className="text-red-500 hover:text-red-700 hover:scale-125 hover:bg-red-100 transition-all cursor-pointer p-1 rounded"
-                                title="Cancelar"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-blue-600 font-medium mr-2 text-sm">
-                              {formatCurrency(row.amortizacaoExtra)}
-                              {row.tipoAmortizacao === "prazo" && (
-                                <span className="ml-1 text-xs text-gray-500">(prazo)</span>
-                              )}
-                              {row.tipoAmortizacao === "parcela" && (
-                                <span className="ml-1 text-xs text-gray-500">(parcela)</span>
-                              )}
-                            </span>
-                          )}
-                          <div className="flex gap-1">
-                            {!editingAmort && (
-                              <>
-                                <button 
-                                  onClick={() => startEditing(row)}
-                                  className="text-blue-500 hover:text-blue-700 hover:scale-125 hover:bg-blue-100 transition-all cursor-pointer p-1 rounded"
-                                  title="Editar Amortização"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                  </svg>
-                                </button>
-                                <button 
-                                  onClick={() => onRemoveAmort && onRemoveAmort(row.month)}
-                                  className="text-red-500 hover:text-red-700 hover:scale-125 hover:bg-red-100 transition-all cursor-pointer p-1 rounded"
-                                  title="Remover Amortização"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                  </svg>
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex justify-end">
-                          <button 
-                            className="text-gray-400 hover:text-yellow-500 hover:scale-125 hover:bg-yellow-50 transition-all cursor-pointer p-1 rounded flex items-center"
-                            onClick={() => onAddAmort && onAddAmort(row.month)}
-                            title="Adicionar Amortização"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                            </svg>
-                            <span className="text-xs ml-1">Incluir</span>
-                          </button>
-                        </div>
-                      )}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600 font-medium">
+                      {row.amortizacaoExtra > 0 ? formatCurrency(row.amortizacaoExtra) : '-'}
                     </td>
                   )}
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                    {formatCurrency(row.novoSaldo)}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900">
+                    {formatCurrency(row.parcela)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                    <div className="flex justify-center space-x-2">
+                      {onAddAmort && (
+                        <button
+                          onClick={() => onAddAmort(row.month)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                          title="Adicionar Amortização"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      )}
+                      {onEditAmort && row.amortizacaoExtra > 0 && (
+                        <button
+                          onClick={() => onEditAmort(row.month)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="Editar Amortização"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                          </svg>
+                        </button>
+                      )}
+                      {onRemoveAmort && row.amortizacaoExtra > 0 && (
+                        <button
+                          onClick={() => onRemoveAmort(row.month)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Remover Amortização"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
-              );
-            })}
+                {expandedRow === row.month && (
+                  <tr className="bg-gray-50">
+                    <td colSpan={showAmortizationColumn ? 7 : 6} className="px-6 py-4 text-sm text-gray-700">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Valores Detalhados</p>
+                          <div className="grid grid-cols-2 gap-1 text-sm">
+                            <span className="text-gray-500">Correção:</span>
+                            <span className="text-right">{formatCurrency(row.correction)}</span>
+                            
+                            <span className="text-gray-500">Dívida Corrigida:</span>
+                            <span className="text-right">{formatCurrency(row.dividaCorrigida)}</span>
+                            
+                            <span className="text-gray-500">Seguro:</span>
+                            <span className="text-right">{formatCurrency(row.seguro)}</span>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Composição da Parcela</p>
+                          <div className="grid grid-cols-2 gap-1 text-sm">
+                            <span className="text-gray-500">Juros:</span>
+                            <span className="text-right">{formatCurrency(row.juros)}</span>
+                            
+                            <span className="text-gray-500">Amortização:</span>
+                            <span className="text-right">{formatCurrency(row.amortizacaoMensal)}</span>
+                            
+                            <span className="text-gray-500">Seguro:</span>
+                            <span className="text-right">{formatCurrency(row.seguro)}</span>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Após o Pagamento</p>
+                          <div className="grid grid-cols-2 gap-1 text-sm">
+                            <span className="text-gray-500">Novo Saldo:</span>
+                            <span className="text-right">{formatCurrency(row.novoSaldo)}</span>
+                            
+                            <span className="text-gray-500">Prazo Restante:</span>
+                            <span className="text-right">{row.prazoRemanescente} meses</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
           </tbody>
         </table>
-        
-        {/* Paginação */}
-        {renderPagination()}
       </div>
     </div>
   );
