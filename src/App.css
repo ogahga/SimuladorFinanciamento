@@ -1,0 +1,40 @@
+.App {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Estilos adicionais para o simulador */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Estilos para os gráficos responsivos */
+.recharts-wrapper {
+  margin: 0 auto;
+}
+
+/* Tabela de amortização */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table th,
+table td {
+  border: 1px solid #e5e7eb;
+}
+
+/* Estilos para as abas */
+.tab-active {
+  border-bottom: 2px solid #3b82f6;
+  color: #2563eb;
+}
