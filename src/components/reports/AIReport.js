@@ -1,188 +1,322 @@
 import React, { useState, useEffect } from 'react';
+import Modal from '../Modal';
 
-// Componente de relatório de IA que fornece insights sobre o financiamento
 const AIReport = ({ onClose }) => {
-  const [loading, setLoading] = useState(true);
+  const [reportType, setReportType] = useState('financingAnalysis');
+  const [isLoading, setIsLoading] = useState(false);
+  const [report, setReport] = useState(null);
   
-  // Simular um carregamento inicial de dados
+  // Generate report on component mount or when report type changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
+    generateReport(reportType);
+  }, [reportType]);
+  
+  // Simulate report generation
+  const generateReport = (type) => {
+    setIsLoading(true);
+    setReport(null);
     
-    return () => clearTimeout(timer);
-  }, []);
+    // Simulate API delay
+    setTimeout(() => {
+      const reportContent = getReportByType(type);
+      setReport(reportContent);
+      setIsLoading(false);
+    }, 1500);
+  };
+  
+  // Get predefined report content by type
+  const getReportByType = (type) => {
+    switch (type) {
+      case 'financingAnalysis':
+        return {
+          title: 'Análise de Financiamento Imobiliário',
+          summary: 'Este relatório analisa seu financiamento atual e fornece recomendações baseadas nos parâmetros configurados.',
+          sections: [
+            {
+              title: 'Visão Geral do Financiamento',
+              content: `
+                Seu financiamento está configurado com as seguintes características principais:
+                - Sistema de amortização SAC (Sistema de Amortização Constante)
+                - Prazo de 300 meses (25 anos)
+                - Taxa de juros de 12,68% ao ano
+                - Taxa de correção monetária de 1,2% ao ano
+                
+                O SAC é caracterizado por amortizações constantes e parcelas decrescentes ao longo do tempo, o que resulta em um pagamento mais acelerado do principal nos primeiros anos do financiamento.
+              `
+            },
+            {
+              title: 'Análise de Custos',
+              content: `
+                O custo total do seu financiamento é significativamente impactado pelos juros, que representam aproximadamente 180% do valor financiado no longo prazo.
+                
+                Considerando um financiamento de R$ 300.000,00:
+                - Total de juros: R$ 541.357,00
+                - Total de correção monetária: R$ 38.945,00
+                - Total de seguros e tarifas: R$ 36.000,00
+                - Custo total: R$ 916.302,00
+                
+                Isso significa que você pagará aproximadamente 3 vezes o valor financiado ao longo do contrato.
+              `
+            },
+            {
+              title: 'Oportunidades de Economia',
+              content: `
+                Com base na nossa análise, identificamos algumas oportunidades de economia:
+                
+                1. **Amortizações Extras**: Realizando amortizações extras anuais de R$ 10.000,00, você pode reduzir o prazo em até 8 anos e economizar aproximadamente R$ 180.000,00 em juros.
+                
+                2. **Refinanciamento**: Com as taxas atuais de mercado, você poderia buscar um refinanciamento com taxas a partir de 10% a.a., o que representaria uma economia de aproximadamente R$ 100.000,00 ao longo do contrato.
+                
+                3. **Mudança de Sistema**: Considerando seu perfil financeiro, o sistema SAC é mais vantajoso do que o PRICE no longo prazo, apesar das parcelas iniciais mais elevadas.
+              `
+            },
+            {
+              title: 'Recomendações',
+              content: `
+                Com base nas simulações realizadas, recomendamos:
+                
+                1. Manter o sistema SAC, pois ele resultará em menor custo total no longo prazo.
+                
+                2. Implementar um plano de amortizações extras anuais, preferencialmente no valor de 3-5% do saldo devedor.
+                
+                3. Monitorar as taxas de mercado para oportunidades de portabilidade ou refinanciamento quando as taxas estiverem pelo menos 2 pontos percentuais abaixo da sua taxa atual.
+                
+                4. Priorizar a redução de prazo nas amortizações extras, em vez da redução de parcela, para maximizar a economia de juros.
+              `
+            }
+          ]
+        };
+        
+      case 'financialPlanning':
+        return {
+          title: 'Planejamento Financeiro para seu Financiamento',
+          summary: 'Este relatório fornece um plano financeiro personalizado para otimizar o pagamento do seu financiamento.',
+          sections: [
+            {
+              title: 'Estratégia de Pagamento',
+              content: `
+                Com base no seu perfil financeiro e nos parâmetros do financiamento, sugerimos a seguinte estratégia:
+                
+                **Fase 1 (Anos 1-5):**
+                - Manter pagamentos regulares
+                - Acumular uma reserva de emergência equivalente a 6 meses de parcelas
+                - Realizar uma amortização anual no valor de R$ 8.000,00 (ou mais se possível)
+                
+                **Fase 2 (Anos 6-15):**
+                - Aumentar as amortizações anuais para R$ 15.000,00
+                - Aplicar qualquer bonificação ou 13º salário diretamente no financiamento
+                - Considerar a portabilidade se as taxas de mercado forem favoráveis
+                
+                **Fase 3 (Anos 16+):**
+                - Avaliar a possibilidade de quitar o financiamento com recursos de outros investimentos
+                - Considerar aumentar as amortizações conforme o crescimento da renda
+              `
+            },
+            {
+              title: 'Orçamento Recomendado',
+              content: `
+                Para viabilizar esta estratégia, recomendamos a seguinte distribuição do orçamento familiar:
+                
+                - 25-30% da renda líquida para o financiamento (parcela mensal)
+                - 5-10% da renda anual para amortizações extras
+                - 10-15% para reserva de emergência e outros investimentos
+                - 50-60% para despesas gerais e estilo de vida
+                
+                Esta alocação permite manter um equilíbrio entre o pagamento acelerado do financiamento e a manutenção de uma reserva financeira adequada.
+              `
+            },
+            {
+              title: 'Análise de Risco',
+              content: `
+                É importante considerar os seguintes riscos no longo prazo:
+                
+                1. **Variação da Taxa de Correção**: Um aumento significativo na taxa de correção monetária pode impactar o saldo devedor. Recomendamos acompanhar esse indicador e, se necessário, aumentar as amortizações em períodos de alta inflação.
+                
+                2. **Mudanças na Renda**: Em caso de redução temporária da renda, priorize o pagamento da parcela regular e adie as amortizações extras até que a situação se estabilize.
+                
+                3. **Custo de Oportunidade**: Em cenários de altas taxas de juros no mercado, avalie o custo de oportunidade entre amortizar o financiamento ou investir em renda fixa.
+              `
+            },
+            {
+              title: 'Próximos Passos',
+              content: `
+                Para implementar este plano financeiro, sugerimos:
+                
+                1. Configurar depósitos automáticos mensais para uma conta separada destinada às amortizações anuais
+                
+                2. Programar revisões semestrais do plano, especialmente após mudanças significativas nas taxas de juros ou na sua situação financeira
+                
+                3. Consultar um planejador financeiro para integrá-lo ao seu planejamento financeiro global
+                
+                4. Utilizar o simulador regularmente para recalcular o impacto das amortizações e ajustar sua estratégia
+              `
+            }
+          ]
+        };
+        
+      case 'marketComparison':
+        return {
+          title: 'Comparação com o Mercado Imobiliário',
+          summary: 'Este relatório compara seu financiamento com as condições atuais do mercado imobiliário.',
+          sections: [
+            {
+              title: 'Panorama do Mercado',
+              content: `
+                O mercado imobiliário brasileiro apresenta atualmente as seguintes características:
+                
+                - Taxa média de juros para financiamento imobiliário: 10,5% a 12,5% a.a.
+                - Prazo médio dos financiamentos: 30 anos (360 meses)
+                - Relação média de financiamento/valor do imóvel (LTV): 70-80%
+                - Variação anual média dos preços de imóveis: 5-7%
+                
+                Seu financiamento com taxa de 12,68% a.a. está ligeiramente acima da média do mercado, mas ainda dentro de um intervalo aceitável considerando o histórico recente.
+              `
+            },
+            {
+              title: 'Competitividade do Seu Financiamento',
+              content: `
+                Em comparação com as ofertas atuais do mercado:
+                
+                - Sua taxa de juros está 0,5-2,0 pontos percentuais acima das melhores ofertas disponíveis para novos financiamentos
+                - O prazo de 300 meses é compatível com a prática atual do mercado
+                - A taxa de correção monetária de 1,2% a.a. está dentro dos padrões praticados
+                
+                **Oportunidades de Portabilidade:**
+                
+                Com as condições atuais, você poderia economizar aproximadamente R$ 85.000,00 ao longo do contrato realizando a portabilidade para uma instituição que ofereça taxa de 10,5% a.a.
+              `
+            },
+            {
+              title: 'Tendências de Mercado',
+              content: `
+                As projeções para os próximos 2-3 anos indicam:
+                
+                - Estabilidade nas taxas de juros, com possível tendência de leve queda
+                - Aumento gradual dos preços dos imóveis, em linha com a inflação
+                - Maior flexibilidade das instituições financeiras em relação à portabilidade
+                
+                Estas tendências sugerem que pode ser vantajoso aguardar 12-18 meses antes de buscar uma renegociação ou portabilidade, quando as condições poderão estar ainda mais favoráveis.
+              `
+            },
+            {
+              title: 'Considerações para Decisões Futuras',
+              content: `
+                Ao avaliar mudanças em seu financiamento, considere:
+                
+                1. **Custos de Portabilidade**: Embora não haja custos diretos para portabilidade, existem custos com documentação e avaliação que devem ser considerados
+                
+                2. **Tempo Restante de Contrato**: Quanto menor o prazo restante, menos impacto terá uma redução na taxa de juros
+                
+                3. **Perfil de Risco**: Financiamentos com taxas pós-fixadas podem oferecer taxas iniciais menores, mas apresentam maior incerteza no longo prazo
+                
+                4. **Valor do Imóvel**: A valorização do imóvel pode permitir a negociação de condições mais favoráveis na portabilidade ou refinanciamento
+              `
+            }
+          ]
+        };
+        
+      default:
+        return {
+          title: 'Relatório de Análise Financeira',
+          summary: 'Não foi possível gerar um relatório específico para o tipo selecionado.',
+          sections: []
+        };
+    }
+  };
   
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl transform transition-all">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50">
-          <h3 className="text-lg font-medium text-indigo-800" id="modal-headline">
-            Relatório de Análise Inteligente
-          </h3>
+    <Modal isOpen={true} onClose={onClose} size="lg" title="Relatório Inteligente">
+      <div className="p-6">
+        <div className="mb-6 flex flex-wrap gap-3">
           <button
-            type="button"
-            className="text-gray-400 hover:text-gray-500 focus:outline-none"
-            onClick={onClose}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              reportType === 'financingAnalysis'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            onClick={() => setReportType('financingAnalysis')}
           >
-            <span className="sr-only">Fechar</span>
-            <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            Análise do Financiamento
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              reportType === 'financialPlanning'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            onClick={() => setReportType('financialPlanning')}
+          >
+            Planejamento Financeiro
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              reportType === 'marketComparison'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            onClick={() => setReportType('marketComparison')}
+          >
+            Comparação de Mercado
           </button>
         </div>
         
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(100vh-180px)]">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center p-12">
-              <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-gray-600">Analisando dados do financiamento...</p>
-            </div>
-          ) : (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <svg className="animate-spin h-12 w-12 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-gray-500">Gerando relatório personalizado...</p>
+          </div>
+        ) : report ? (
+          <div className="prose max-w-none">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{report.title}</h2>
+            <p className="text-gray-700 mb-6">{report.summary}</p>
+            
             <div className="space-y-6">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 mt-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+              {report.sections.map((section, index) => (
+                <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">{section.title}</h3>
+                  <div className="text-gray-700 whitespace-pre-line">{section.content}</div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6 rounded-md bg-blue-50 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-lg font-medium text-gray-900">Assistente Virtual de Financiamento</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Este relatório foi gerado automaticamente com base nos dados da sua simulação.
-                    Utilize estas informações para tomar decisões mais informadas sobre seu financiamento.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="text-md font-medium text-blue-800 mb-2">Resumo Executivo</h4>
-                <p className="text-sm text-blue-700">
-                  Você está simulando um financiamento no sistema <span className="font-medium">SAC (Sistema de Amortização Constante)</span>, 
-                  que é caracterizado por parcelas decrescentes ao longo do tempo. 
-                  Este sistema geralmente resulta em um custo total menor de juros comparado ao sistema PRICE, 
-                  porém com parcelas iniciais mais altas.
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="text-md font-medium text-green-800 mb-2">Pontos Positivos</h4>
-                  <ul className="list-disc pl-5 space-y-1 text-sm text-green-700">
-                    <li>Menor custo total de juros no longo prazo</li>
-                    <li>Rápida redução do saldo devedor</li>
-                    <li>Parcelas que diminuem com o tempo, aliviando o orçamento futuro</li>
-                    <li>Mais vantajoso para amortizações extras</li>
-                    <li>Menor comprometimento da renda no longo prazo</li>
-                  </ul>
-                </div>
-                
-                <div className="bg-amber-50 p-4 rounded-lg">
-                  <h4 className="text-md font-medium text-amber-800 mb-2">Pontos de Atenção</h4>
-                  <ul className="list-disc pl-5 space-y-1 text-sm text-amber-700">
-                    <li>Parcelas iniciais mais altas que no sistema PRICE</li>
-                    <li>Maior comprometimento da renda no início do financiamento</li>
-                    <li>Pode dificultar a aprovação do crédito se a capacidade de pagamento for limitada</li>
-                    <li>Exige disciplina financeira para lidar com as parcelas maiores no início</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div className="border-t border-gray-200 pt-4">
-                <h4 className="text-md font-medium text-gray-800 mb-3">Recomendações Personalizadas</h4>
-                
-                <div className="space-y-4">
-                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                        </svg>
-                      </div>
-                      <div className="ml-3">
-                        <h5 className="text-sm font-medium text-gray-900">Amortizações Estratégicas</h5>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Considere fazer amortizações extras nos primeiros anos do financiamento para 
-                          maximizar a economia de juros. Cada R$ 1.000 amortizado no início pode 
-                          gerar uma economia significativa ao longo do prazo.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div className="ml-3">
-                        <h5 className="text-sm font-medium text-gray-900">Planejamento Financeiro</h5>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Reserve uma reserva financeira de pelo menos 6 meses de parcelas para emergências. 
-                          Como suas parcelas são decrescentes, considere manter o pagamento no valor da 
-                          primeira parcela e usar a diferença para amortizações extras.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div className="ml-3">
-                        <h5 className="text-sm font-medium text-gray-900">Revisão Periódica</h5>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Recomendamos revisar seu financiamento anualmente. Avalie se as taxas de mercado 
-                          estão mais favoráveis para uma possível portabilidade, e considere aumentar 
-                          o valor ou frequência das amortizações extras conforme sua situação financeira melhorar.
-                        </p>
-                      </div>
-                    </div>
+                  <h3 className="text-sm font-medium text-blue-800">Observação Importante</h3>
+                  <div className="mt-2 text-sm text-blue-700">
+                    <p>
+                      Este relatório é baseado nos dados fornecidos e simulações realizadas. As projeções e recomendações são apenas para fins informativos e não constituem aconselhamento financeiro. Consulte um profissional qualificado antes de tomar decisões financeiras importantes.
+                    </p>
                   </div>
                 </div>
-              </div>
-              
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="text-md font-medium text-gray-800 mb-2">Próximos Passos Sugeridos</h4>
-                <ol className="list-decimal pl-5 space-y-1 text-sm text-gray-700">
-                  <li>Compare esta simulação com o sistema PRICE para avaliar qual se adequa melhor ao seu orçamento</li>
-                  <li>Utilize o Simulador de Prazo Alvo para planejar amortizações estratégicas</li>
-                  <li>Salve esta simulação para referência futura</li>
-                  <li>Consulte um especialista financeiro para validar sua estratégia</li>
-                </ol>
-              </div>
-              
-              <div className="text-xs text-gray-500 mt-4">
-                <p>
-                  <strong>Nota:</strong> Este relatório é gerado automaticamente com base nos dados 
-                  fornecidos e serve apenas como uma referência. As condições reais de financiamento 
-                  podem variar conforme a instituição financeira e sua situação particular.
-                </p>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            Não foi possível gerar o relatório. Por favor, tente novamente.
+          </div>
+        )}
         
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+        <div className="mt-6 flex justify-end">
           <button
             type="button"
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none"
             onClick={onClose}
           >
             Fechar Relatório
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 
