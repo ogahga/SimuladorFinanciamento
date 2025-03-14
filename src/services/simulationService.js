@@ -1,12 +1,9 @@
-// Service to interact with the backend API for simulations
+// Simulation Service - Interface with backend API
+// This service handles saving and loading simulations from the database
 
 const API_URL = 'http://localhost:3001/api';
 
-/**
- * Save a simulation to the database
- * @param {Object} simulationData - Data to save
- * @returns {Promise} - Promise with the saved simulation data
- */
+// Save simulation to database
 export const saveSimulation = async (simulationData) => {
   try {
     const response = await fetch(`${API_URL}/simulations`, {
@@ -18,7 +15,7 @@ export const saveSimulation = async (simulationData) => {
     });
     
     if (!response.ok) {
-      throw new Error(`Error saving simulation: ${response.statusText}`);
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
     
     return await response.json();
@@ -28,16 +25,13 @@ export const saveSimulation = async (simulationData) => {
   }
 };
 
-/**
- * Load all saved simulations from the database
- * @returns {Promise} - Promise with the array of simulation data
- */
+// Load all simulations from database
 export const loadSimulations = async () => {
   try {
     const response = await fetch(`${API_URL}/simulations`);
     
     if (!response.ok) {
-      throw new Error(`Error loading simulations: ${response.statusText}`);
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
@@ -48,32 +42,24 @@ export const loadSimulations = async () => {
   }
 };
 
-/**
- * Load a specific simulation by ID
- * @param {number} id - Simulation ID
- * @returns {Promise} - Promise with the simulation data
- */
+// Load a specific simulation by ID
 export const loadSimulationById = async (id) => {
   try {
     const response = await fetch(`${API_URL}/simulations/${id}`);
     
     if (!response.ok) {
-      throw new Error(`Error loading simulation: ${response.statusText}`);
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
-    return data.data || null;
+    return data.data;
   } catch (error) {
     console.error(`Error loading simulation with ID ${id}:`, error);
     throw error;
   }
 };
 
-/**
- * Delete a simulation by ID
- * @param {number} id - Simulation ID
- * @returns {Promise} - Promise with the result of the deletion
- */
+// Delete a simulation by ID
 export const deleteSimulation = async (id) => {
   try {
     const response = await fetch(`${API_URL}/simulations/${id}`, {
@@ -81,7 +67,7 @@ export const deleteSimulation = async (id) => {
     });
     
     if (!response.ok) {
-      throw new Error(`Error deleting simulation: ${response.statusText}`);
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
     
     return await response.json();
@@ -91,12 +77,7 @@ export const deleteSimulation = async (id) => {
   }
 };
 
-/**
- * Update an existing simulation
- * @param {number} id - Simulation ID
- * @param {Object} simulationData - Updated simulation data
- * @returns {Promise} - Promise with the updated simulation data
- */
+// Update a simulation by ID
 export const updateSimulation = async (id, simulationData) => {
   try {
     const response = await fetch(`${API_URL}/simulations/${id}`, {
@@ -108,29 +89,12 @@ export const updateSimulation = async (id, simulationData) => {
     });
     
     if (!response.ok) {
-      throw new Error(`Error updating simulation: ${response.statusText}`);
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
     
     return await response.json();
   } catch (error) {
     console.error(`Error updating simulation with ID ${id}:`, error);
     throw error;
-  }
-};
-
-// Helper function to format date for display
-export const formatDate = (dateString) => {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(dateString).toLocaleDateString('pt-BR', options);
-};
-
-// Function to validate connection to the backend
-export const checkConnection = async () => {
-  try {
-    const response = await fetch(`${API_URL}/health`, { method: 'GET' });
-    return response.ok;
-  } catch (error) {
-    console.error('Error checking connection:', error);
-    return false;
   }
 };
