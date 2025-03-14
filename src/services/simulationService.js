@@ -1,18 +1,14 @@
-// API URL for simulation endpoints
-const API_URL = 'http://localhost:3001/api';
+// API base URL
+const API_BASE_URL = 'http://localhost:3001/api';
 
 /**
  * Save a simulation to the database
- * @param {Object} simulation - The simulation data to save
+ * @param {Object} simulationData - The simulation data to save
  * @returns {Promise<Object>} - The saved simulation data with ID
  */
-export const saveSimulation = async (simulation) => {
+export const saveSimulation = async (simulationData) => {
   try {
-    // Separate amortizations from simulation data
-    const { amortizations, ...simulationData } = simulation;
-    
-    // First, save simulation data
-    const response = await fetch(`${API_URL}/simulations`, {
+    const response = await fetch(`${API_BASE_URL}/simulations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -21,40 +17,11 @@ export const saveSimulation = async (simulation) => {
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to save simulation');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to save simulation');
     }
     
-    const savedSimulation = await response.json();
-    
-    // If there are amortizations, save them as well
-    if (amortizations && amortizations.length > 0) {
-      // Map amortizations to include simulation_id
-      const amortizationsWithId = amortizations.map(amort => ({
-        ...amort,
-        simulation_id: savedSimulation.id
-      }));
-      
-      // Save amortizations
-      const amortResponse = await fetch(`${API_URL}/amortizations/bulk`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(amortizationsWithId),
-      });
-      
-      if (!amortResponse.ok) {
-        const error = await amortResponse.json();
-        console.warn('Failed to save amortizations:', error);
-        // We don't throw here, as the simulation was saved successfully
-      }
-      
-      // Add amortizations to the returned simulation object
-      savedSimulation.amortizations = amortizationsWithId;
-    }
-    
-    return savedSimulation;
+    return await response.json();
   } catch (error) {
     console.error('Error saving simulation:', error);
     throw error;
@@ -62,42 +29,20 @@ export const saveSimulation = async (simulation) => {
 };
 
 /**
- * Load all saved simulations from the database
- * @returns {Promise<Array>} - Array of simulation objects
+ * Load all simulations from the database
+ * @returns {Promise<Array>} - Array of saved simulations
  */
 export const loadSimulations = async () => {
   try {
-    // Fetch all simulations
-    const response = await fetch(`${API_URL}/simulations`);
+    const response = await fetch(`${API_BASE_URL}/simulations`);
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to load simulations');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to load simulations');
     }
     
-    const simulations = await response.json();
-    
-    // For each simulation, fetch its amortizations
-    const simulationsWithAmortizations = await Promise.all(
-      simulations.map(async (sim) => {
-        try {
-          const amortResponse = await fetch(`${API_URL}/amortizations/simulation/${sim.id}`);
-          
-          if (!amortResponse.ok) {
-            console.warn(`Failed to load amortizations for simulation ${sim.id}`);
-            return { ...sim, amortizations: [] };
-          }
-          
-          const amortizations = await amortResponse.json();
-          return { ...sim, amortizations };
-        } catch (error) {
-          console.warn(`Error loading amortizations for simulation ${sim.id}:`, error);
-          return { ...sim, amortizations: [] };
-        }
-      })
-    );
-    
-    return simulationsWithAmortizations;
+    const data = await response.json();
+    return data.data || [];
   } catch (error) {
     console.error('Error loading simulations:', error);
     throw error;
@@ -105,20 +50,41 @@ export const loadSimulations = async () => {
 };
 
 /**
+ * Load a specific simulation by ID
+ * @param {number} id - The simulation ID
+ * @returns {Promise<Object>} - The simulation data
+ */
+export const loadSimulationById = async (id) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/simulations/${id}`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to load simulation');
+    }
+    
+    const data = await response.json();
+    return data.data || null;
+  } catch (error) {
+    console.error('Error loading simulation:', error);
+    throw error;
+  }
+};
+
+/**
  * Delete a simulation from the database
- * @param {string|number} id - The ID of the simulation to delete
+ * @param {number} id - The simulation ID to delete
  * @returns {Promise<Object>} - Success message
  */
 export const deleteSimulation = async (id) => {
   try {
-    // Delete simulation (cascade should delete amortizations as well)
-    const response = await fetch(`${API_URL}/simulations/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/simulations/${id}`, {
       method: 'DELETE',
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to delete simulation');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to delete simulation');
     }
     
     return await response.json();
@@ -129,34 +95,80 @@ export const deleteSimulation = async (id) => {
 };
 
 /**
- * Get a single simulation by ID
- * @param {string|number} id - The ID of the simulation to retrieve
- * @returns {Promise<Object>} - The simulation object with amortizations
+ * Update an existing simulation
+ * @param {number} id - The simulation ID
+ * @param {Object} simulationData - The updated simulation data
+ * @returns {Promise<Object>} - The updated simulation
  */
-export const getSimulation = async (id) => {
+export const updateSimulation = async (id, simulationData) => {
   try {
-    // Fetch simulation by ID
-    const response = await fetch(`${API_URL}/simulations/${id}`);
+    const response = await fetch(`${API_BASE_URL}/simulations/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(simulationData),
+    });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to get simulation');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update simulation');
     }
     
-    const simulation = await response.json();
-    
-    // Fetch amortizations for this simulation
-    const amortResponse = await fetch(`${API_URL}/amortizations/simulation/${id}`);
-    
-    if (!amortResponse.ok) {
-      console.warn(`Failed to load amortizations for simulation ${id}`);
-      return { ...simulation, amortizations: [] };
-    }
-    
-    const amortizations = await amortResponse.json();
-    return { ...simulation, amortizations };
+    return await response.json();
   } catch (error) {
-    console.error('Error getting simulation:', error);
+    console.error('Error updating simulation:', error);
+    throw error;
+  }
+};
+
+/**
+ * Add an amortization to a simulation
+ * @param {number} simulationId - The simulation ID
+ * @param {Object} amortizationData - The amortization data
+ * @returns {Promise<Object>} - The new amortization
+ */
+export const addAmortization = async (simulationId, amortizationData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/simulations/${simulationId}/amortizations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(amortizationData),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to add amortization');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding amortization:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an amortization
+ * @param {number} amortizationId - The amortization ID
+ * @returns {Promise<Object>} - Success message
+ */
+export const deleteAmortization = async (amortizationId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/amortizations/${amortizationId}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to delete amortization');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting amortization:', error);
     throw error;
   }
 };
