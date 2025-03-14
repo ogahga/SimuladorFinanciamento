@@ -1,194 +1,191 @@
 import React, { useState, useEffect } from 'react';
-import Modal from '../Modal';
 
-// Renderiza um relatório de IA com recomendações personalizadas para o financiamento
 const AIReport = ({ onClose }) => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [report, setReport] = useState(null);
   
   useEffect(() => {
-    // Simular tempo de carregamento
+    // Simulação de carregamento do relatório
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      setLoading(false);
+      setReport(generateSampleReport());
     }, 1500);
     
     return () => clearTimeout(timer);
   }, []);
   
-  const handleClose = () => {
-    setIsOpen(false);
-    if (onClose) {
-      onClose();
-    }
+  const handlePrint = () => {
+    window.print();
+  };
+  
+  const handleExport = () => {
+    // Criar um elemento de texto para download
+    const element = document.createElement('a');
+    const file = new Blob([JSON.stringify(report, null, 2)], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = 'relatório-financiamento.txt';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   };
   
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Relatório de Análise Inteligente" size="lg">
-      <div className="p-6">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-96">
-            <div className="w-16 h-16 mb-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-lg text-gray-600">Analisando seu financiamento...</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Nossa IA está avaliando todas as opções de amortização e calculando as melhores estratégias para você.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-lg">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">Sumário Executivo</h3>
-              <p className="text-blue-700">
-                Baseado na análise do seu financiamento atual, você poderia economizar cerca de <span className="font-semibold">25-30%</span> em 
-                juros e reduzir o prazo total em até <span className="font-semibold">40%</span> com uma estratégia otimizada de amortizações extras.
-                Abaixo, detalhamos as estratégias mais eficientes para o seu caso.
-              </p>
-            </div>
-            
-            <h3 className="text-xl font-semibold text-gray-800 border-b pb-2">Estratégias Recomendadas</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center mb-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-medium text-gray-800">Estratégia de Prazo Reduzido</h4>
-                </div>
-                <p className="text-gray-600 mb-3">
-                  Aplicando amortizações extras anuais de aproximadamente <span className="font-medium">R$ 10.000,00</span>,
-                  é possível reduzir o prazo total em cerca de <span className="font-medium">8 anos</span>, economizando
-                  significativamente em juros.
-                </p>
-                <div className="mt-4 bg-green-50 p-3 rounded-md">
-                  <p className="text-sm text-green-700">
-                    <span className="font-semibold">Benefício:</span> Economia total de até <span className="font-semibold">R$ 120.000,00</span> e quitação antecipada
-                  </p>
-                </div>
-              </div>
-              
-              <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center mb-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-medium text-gray-800">Estratégia de Parcela Reduzida</h4>
-                </div>
-                <p className="text-gray-600 mb-3">
-                  Aplicando uma amortização única de <span className="font-medium">R$ 30.000,00</span> no início do financiamento,
-                  você pode reduzir o valor mensal das parcelas em até <span className="font-medium">20%</span>, aliviando o orçamento.
-                </p>
-                <div className="mt-4 bg-blue-50 p-3 rounded-md">
-                  <p className="text-sm text-blue-700">
-                    <span className="font-semibold">Benefício:</span> Alívio imediato no fluxo de caixa mensal e menor comprometimento de renda
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-8">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Análise de Sensibilidade de Taxa</h3>
-              <p className="text-gray-600 mb-4">
-                Sua taxa atual de <span className="font-medium">12,68% a.a.</span> está acima da média de mercado.
-                Uma redução de <span className="font-medium">1-2 pontos percentuais</span> resultaria em uma economia adicional
-                significativa. Considere solicitar uma renegociação da taxa após 12 meses de pagamentos pontuais.
-              </p>
-              <div className="overflow-hidden md:max-w-lg mx-auto">
-                <div className="h-4 w-full bg-gray-200 rounded-full">
-                  <div
-                    className="h-4 bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-full"
-                    style={{ width: '72%' }}
-                  >
-                  </div>
-                </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Taxa baixa</span>
-                  <span>Sua taxa</span>
-                  <span>Taxa alta</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <div className="bg-indigo-50 p-4 rounded-lg">
-                <h4 className="font-medium text-indigo-800 mb-2">Potencial de Economia</h4>
-                <p className="text-3xl font-bold text-indigo-700 mb-2">R$ 140.000+</p>
-                <p className="text-sm text-indigo-600">
-                  Economia total estimada com a estratégia ideal de amortizações
-                </p>
-              </div>
-              
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <h4 className="font-medium text-amber-800 mb-2">Redução de Tempo</h4>
-                <p className="text-3xl font-bold text-amber-700 mb-2">-8 Anos</p>
-                <p className="text-sm text-amber-600">
-                  Redução potencial no prazo total do financiamento
-                </p>
-              </div>
-              
-              <div className="bg-emerald-50 p-4 rounded-lg">
-                <h4 className="font-medium text-emerald-800 mb-2">ROI da Amortização</h4>
-                <p className="text-3xl font-bold text-emerald-700 mb-2">18.5%</p>
-                <p className="text-sm text-emerald-600">
-                  Retorno efetivo ao investir em amortizações extras
-                </p>
-              </div>
-            </div>
-            
-            <div className="mt-8 p-4 border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Recomendações Adicionais</h3>
-              <ul className="space-y-3">
-                <li className="flex">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <p className="text-gray-700">
-                    Priorize amortizações extras nos <span className="font-medium">primeiros 5 anos</span> do financiamento, quando a proporção de juros na parcela é maior.
-                  </p>
-                </li>
-                <li className="flex">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <p className="text-gray-700">
-                    Considere migrar para o <span className="font-medium">sistema SAC</span> se sua instituição financeira permitir, já que o custo total tende a ser menor no longo prazo.
-                  </p>
-                </li>
-                <li className="flex">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <p className="text-gray-700">
-                    Crie uma reserva específica para <span className="font-medium">amortizações anuais</span>, idealmente com rendimento superior à inflação.
-                  </p>
-                </li>
-                <li className="flex">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <p className="text-gray-700">
-                    Monitore a <span className="font-medium">taxa SELIC</span> e a inflação para identificar oportunidades de refinanciamento com taxas menores.
-                  </p>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="flex justify-center mt-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="bg-white w-full max-w-5xl rounded-lg shadow-xl transform transition-all">
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 className="text-lg font-medium text-gray-900">
+              Relatório de Análise de Financiamento
+            </h2>
+            <div className="flex items-center space-x-2">
               <button
-                onClick={handleClose}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                onClick={handlePrint}
+                className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                disabled={loading}
               >
-                Fechar Relatório
+                <span className="sr-only">Imprimir</span>
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button
+                onClick={handleExport}
+                className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                disabled={loading}
+              >
+                <span className="sr-only">Exportar</span>
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </button>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-500 focus:outline-none"
+              >
+                <span className="sr-only">Fechar</span>
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
           </div>
-        )}
+          
+          {/* Content */}
+          <div className="px-6 py-4 max-h-[80vh] overflow-y-auto">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <svg className="animate-spin h-10 w-10 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p className="text-gray-500">Gerando relatório de análise...</p>
+              </div>
+            ) : (
+              <div className="prose max-w-none" id="report-content">
+                {report && (
+                  <>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      {report.title}
+                    </h3>
+                    
+                    <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                      <h4 className="font-medium text-blue-800 mb-2">Resumo Executivo</h4>
+                      <p className="text-blue-700">{report.summary}</p>
+                    </div>
+                    
+                    {report.sections.map((section, index) => (
+                      <div key={index} className="mb-6">
+                        <h4 className="text-lg font-semibold text-gray-800 mb-2">{section.title}</h4>
+                        <p className="text-gray-700 mb-4">{section.content}</p>
+                        
+                        {section.points && (
+                          <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                            {section.points.map((point, pointIndex) => (
+                              <li key={pointIndex}>{point}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                    
+                    <div className="bg-green-50 p-4 rounded-lg mb-6">
+                      <h4 className="font-medium text-green-800 mb-2">Recomendações</h4>
+                      <ul className="list-disc pl-5 space-y-1 text-green-700">
+                        {report.recommendations.map((rec, index) => (
+                          <li key={index}>{rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div className="border-t pt-4 mt-8">
+                      <p className="text-gray-500 text-sm italic">
+                        Este relatório foi gerado automaticamente com base nos dados de simulação atuais.
+                        As recomendações são apenas sugestões e não substituem o aconselhamento financeiro profissional.
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </Modal>
+    </div>
   );
+};
+
+// Função para gerar um relatório de exemplo
+const generateSampleReport = () => {
+  return {
+    title: "Análise Financeira de Financiamento Imobiliário",
+    summary: "Este relatório apresenta uma análise detalhada do seu cenário de financiamento imobiliário, identificando oportunidades para otimização de custos e redução de prazos através de estratégias de amortização personalizada.",
+    sections: [
+      {
+        title: "Perfil do Financiamento",
+        content: "A simulação atual apresenta um financiamento de médio prazo com taxa de juros compatível com o mercado. O sistema de amortização escolhido é adequado para o seu perfil, considerando os objetivos financeiros de longo prazo.",
+        points: [
+          "Sistema SAC com amortizações progressivas",
+          "Taxa de juros dentro da média do mercado",
+          "Prazo de financiamento confortável para liquidação da dívida"
+        ]
+      },
+      {
+        title: "Análise de Custo Total",
+        content: "O custo total do financiamento, incluindo juros, seguros e correção monetária, representa aproximadamente 65% acima do valor financiado. Esta proporção está dentro da faixa esperada para o prazo e sistema escolhidos.",
+        points: [
+          "Os juros representam a maior parcela do custo adicional (72%)",
+          "Seguros e taxas somam aproximadamente 18% do custo adicional",
+          "Correção monetária contribui com 10% do custo adicional"
+        ]
+      },
+      {
+        title: "Estratégia de Amortizações",
+        content: "A simulação com amortizações extras apresenta uma significativa redução no custo total e no prazo do financiamento. Com a atual estratégia de amortizações, a economia projetada é relevante comparada ao financiamento padrão.",
+        points: [
+          "Economia total estimada em 32% do custo de juros original",
+          "Redução de prazo em aproximadamente 42 meses (3,5 anos)",
+          "A distribuição das amortizações está bem balanceada ao longo do período"
+        ]
+      },
+      {
+        title: "Impacto no Fluxo de Caixa",
+        content: "As amortizações extras escolhidas têm um impacto controlado no fluxo de caixa mensal, priorizando a redução de prazo em vez da redução imediata das parcelas. Esta abordagem é mais eficiente para economia total no longo prazo.",
+        points: [
+          "Compromisso financeiro médio mensal reduzido em 8% após amortizações",
+          "Liquidação antecipada melhora o perfil financeiro de longo prazo",
+          "Flexibilidade para ajustes futuros na estratégia de pagamento"
+        ]
+      }
+    ],
+    recommendations: [
+      "Considere aumentar a frequência de amortizações extras nos primeiros 24 meses, quando o saldo devedor está mais alto",
+      "Avalie a possibilidade de amortizações trimestrais de menor valor em vez de anuais de maior valor",
+      "Para maximizar a economia, priorize a opção de redução de prazo para todas as amortizações",
+      "Acompanhe periodicamente as taxas de mercado para avaliar oportunidades de portabilidade",
+      "Estabeleça uma reserva financeira específica para as amortizações programadas"
+    ]
+  };
 };
 
 export default AIReport;
