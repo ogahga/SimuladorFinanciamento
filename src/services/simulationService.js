@@ -1,10 +1,11 @@
-// API base URL
+// Services for API communication related to simulations
+
 const API_URL = 'http://localhost:3001/api';
 
 /**
  * Save a simulation to the database
- * @param {Object} simulationData - The simulation data to save
- * @returns {Promise<Object>} - The saved simulation data
+ * @param {Object} simulationData - Data of the simulation to save
+ * @returns {Promise<Object>} - The saved simulation object
  */
 export const saveSimulation = async (simulationData) => {
   try {
@@ -17,61 +18,42 @@ export const saveSimulation = async (simulationData) => {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error saving simulation');
     }
     
     return await response.json();
   } catch (error) {
-    console.error('Error saving simulation:', error);
+    console.error('API Error:', error);
     throw error;
   }
 };
 
 /**
  * Load all simulations from the database
- * @returns {Promise<Array>} - Array of simulation objects
+ * @returns {Promise<Array>} - List of saved simulations
  */
 export const loadSimulations = async () => {
   try {
     const response = await fetch(`${API_URL}/simulations`);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error loading simulations');
     }
     
     const data = await response.json();
     return data.data || [];
   } catch (error) {
-    console.error('Error loading simulations:', error);
+    console.error('API Error:', error);
     throw error;
   }
 };
 
 /**
- * Load a specific simulation by ID
- * @param {number} id - The simulation ID
- * @returns {Promise<Object>} - The simulation data
- */
-export const loadSimulationById = async (id) => {
-  try {
-    const response = await fetch(`${API_URL}/simulations/${id}`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error(`Error loading simulation #${id}:`, error);
-    throw error;
-  }
-};
-
-/**
- * Delete a simulation by ID
- * @param {number} id - The simulation ID to delete
- * @returns {Promise<Object>} - The response data
+ * Delete a simulation from the database
+ * @param {number} id - ID of the simulation to delete
+ * @returns {Promise<void>}
  */
 export const deleteSimulation = async (id) => {
   try {
@@ -80,39 +62,35 @@ export const deleteSimulation = async (id) => {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error deleting simulation');
     }
     
     return await response.json();
   } catch (error) {
-    console.error(`Error deleting simulation #${id}:`, error);
+    console.error('API Error:', error);
     throw error;
   }
 };
 
 /**
- * Update a simulation by ID
- * @param {number} id - The simulation ID to update
- * @param {Object} simulationData - The updated simulation data
- * @returns {Promise<Object>} - The updated simulation data
+ * Load a specific simulation from the database
+ * @param {number} id - ID of the simulation to load
+ * @returns {Promise<Object>} - The simulation object
  */
-export const updateSimulation = async (id, simulationData) => {
+export const loadSimulation = async (id) => {
   try {
-    const response = await fetch(`${API_URL}/simulations/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(simulationData),
-    });
+    const response = await fetch(`${API_URL}/simulations/${id}`);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error loading simulation');
     }
     
-    return await response.json();
+    const data = await response.json();
+    return data.data || null;
   } catch (error) {
-    console.error(`Error updating simulation #${id}:`, error);
+    console.error('API Error:', error);
     throw error;
   }
 };
