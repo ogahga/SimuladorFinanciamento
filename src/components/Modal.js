@@ -36,18 +36,27 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   const sizeClass = sizeClasses[size] || sizeClasses.md;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ zIndex: 9999 }}>
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
-           onClick={onClose}
-           aria-hidden="true"></div>
+    <>
+      {/* Overlay */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
+        style={{ zIndex: 9999 }}
+        onClick={onClose}
+        aria-hidden="true"
+      />
       
-      <div className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+      {/* Modal container */}
+      <div 
+        className="fixed inset-0 flex items-center justify-center" 
+        style={{ zIndex: 10000 }}
+      >
         <div 
-          className={`bg-white rounded-lg shadow-xl transform transition-all w-full ${sizeClass} relative pointer-events-auto animate-modal-appear`}
+          className={`bg-white rounded-lg shadow-xl w-full ${sizeClass} relative animate-modal-appear mx-3`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-headline"
           onClick={(e) => e.stopPropagation()}
+          style={{ maxHeight: "90vh" }}
         >
           {/* Header */}
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -66,13 +75,13 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
             </button>
           </div>
           
-          {/* Body */}
-          <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+          {/* Body - com scroll */}
+          <div className="overflow-y-auto" style={{ maxHeight: "calc(90vh - 60px)" }}>
             {children}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
