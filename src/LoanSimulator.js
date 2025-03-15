@@ -1,38 +1,3 @@
-import React, { useState, useEffect } from 'react';
-import Modal from './components/Modal';
-import InputForms from './components/InputForms';
-import AmortizationTable from './components/AmortizationTable';
-import FinanceSummary from './components/FinanceSummary';
-import ChartTabs from './components/ChartTabs';
-import TargetTermSimulator from './components/TargetTermSimulator';
-import About from './components/About';
-import AIReport from './components/reports/AIReport';
-import SystemComparison from './components/SystemComparison';
-import DatabaseIntegration from './components/DatabaseIntegration';
-
-// Para formatar valores monetários com máscara R$ 00,00
-const formatCurrencyMask = (value) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(value || 0);
-};
-
-// Função para extrair valores numéricos de campos com máscara
-const parseCurrencyValue = (formattedValue) => {
-  if (!formattedValue) return 0;
-  
-  // Remove todos os caracteres não numéricos exceto vírgula
-  const cleanValue = formattedValue.replace(/[^0-9,]/g, '');
-  
-  // Substitui vírgula por ponto para conversão em número
-  const numericValue = parseFloat(cleanValue.replace(',', '.'));
-  
-  return isNaN(numericValue) ? 0 : numericValue;
-};
-
 // Importar as funções de simulação
 import {
   formatCurrency,
@@ -44,6 +9,19 @@ import {
   calculateTotalSavings,
   calculateSimulationSummary
 } from './simulationUtils';
+
+// Importações do React e componentes
+import React, { useState, useEffect } from 'react';
+import Modal from './components/Modal';
+import InputForms from './components/InputForms';
+import AmortizationTable from './components/AmortizationTable';
+import FinanceSummary from './components/FinanceSummary';
+import ChartTabs from './components/ChartTabs';
+import TargetTermSimulator from './components/TargetTermSimulator';
+import About from './components/About';
+import AIReport from './components/reports/AIReport';
+import SystemComparison from './components/SystemComparison';
+import DatabaseIntegration from './components/DatabaseIntegration';
 
 const LoanSimulator = () => {
   // State para valores de entrada
