@@ -36,14 +36,14 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   const sizeClass = sizeClasses[size] || sizeClasses.md;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ zIndex: 9999 }}>
       <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
            onClick={onClose}
            aria-hidden="true"></div>
       
-      <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
         <div 
-          className={`bg-white rounded-lg shadow-xl transform transition-all w-full ${sizeClass} relative`}
+          className={`bg-white rounded-lg shadow-xl transform transition-all w-full ${sizeClass} relative pointer-events-auto animate-modal-appear`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-headline"
@@ -67,7 +67,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
           </div>
           
           {/* Body */}
-          <div className="overflow-y-auto max-h-[calc(100vh-180px)]">
+          <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
             {children}
           </div>
         </div>
