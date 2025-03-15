@@ -45,13 +45,20 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
         aria-hidden="true"
       />
       
-      {/* Modal container */}
-      <div 
-        className="fixed inset-0 flex items-center justify-center" 
-        style={{ zIndex: 10000 }}
+      {/* Modal centralizado forçadamente */}
+      <div
+        className="fixed"
+        style={{
+          zIndex: 10000,
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '100%',
+          pointerEvents: 'none'
+        }}
       >
         <div 
-          className={`bg-white rounded-lg shadow-xl w-full ${sizeClass} relative animate-modal-appear mx-3`}
+          className={`bg-white rounded-lg shadow-xl ${sizeClass} relative animate-modal-appear mx-auto pointer-events-auto`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-headline"
