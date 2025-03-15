@@ -48,10 +48,24 @@ const InputForms = ({ initialValues, onSubmit, amortizations = [] }) => {
         amount: initialValues?.amount || '',
         interestRate: initialValues?.interestRate || '',
         term: initialValues?.term || '',
-        insurance: initialValues?.insurance || '',
-        correctionRate: initialValues?.correctionRate || '',
+        insurance: initialValues?.insurance || 0,
+        correctionRate: initialValues?.correctionRate || 0,
         system: initialValues?.system || 'sac',
     });
+    
+    // Atualizar parametros quando os valores iniciais mudarem
+    useEffect(() => {
+        if (initialValues) {
+            setFinancingParams({
+                amount: initialValues.amount || financingParams.amount,
+                interestRate: initialValues.interestRate || financingParams.interestRate,
+                term: initialValues.term || financingParams.term,
+                insurance: initialValues.insurance !== undefined ? initialValues.insurance : 0,
+                correctionRate: initialValues.correctionRate !== undefined ? initialValues.correctionRate : 0,
+                system: initialValues.system || financingParams.system,
+            });
+        }
+    }, [initialValues]);
 
     const [focused, setFocused] = useState({
         amount: false,
@@ -210,66 +224,3 @@ const InputForms = ({ initialValues, onSubmit, amortizations = [] }) => {
                                 type="text"
                                 name="correctionRate"
                                 value={focused.correctionRate ? financingParams.correctionRate : formatPercentageMask(financingParams.correctionRate)}
-                                onChange={handleChange}
-                                onFocus={() => handleFocus('correctionRate')}
-                                onBlur={() => handleBlur('correctionRate')}
-                                className="input"
-                                placeholder="0,00%"
-                                required
-                            />
-                            <span className="input-icon-right">% a.a.</span>
-                        </div>
-                    </div>
-                    
-                    <div className="input-group !mb-2">
-                        <label htmlFor="insurance" className="input-label">
-                            Taxas/seguro mensal (R$)
-                        </label>
-                        <div className="input-icon">
-                            <span className="input-icon-left">R$</span>
-                            <input
-                                id="insurance"
-                                type="text"
-                                name="insurance"
-                                value={focused.insurance ? financingParams.insurance : formatCurrencyMask(financingParams.insurance)}
-                                onChange={handleChange}
-                                onFocus={() => handleFocus('insurance')}
-                                onBlur={() => handleBlur('insurance')}
-                                className="input"
-                                placeholder="0,00"
-                                required
-                            />
-                        </div>
-                    </div>
-                    
-                    <div className="input-group !mb-2">
-                        <label htmlFor="system" className="input-label">
-                            Sistema de Amortização
-                        </label>
-                        <select
-                            id="system"
-                            name="system"
-                            value={financingParams.system}
-                            onChange={handleChange}
-                            className="input"
-                        >
-                            <option value="sac">SAC (parcelas decrescentes)</option>
-                            <option value="price">PRICE (parcelas fixas)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="card-footer">
-                <button type="submit" className="btn btn-primary w-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                    </svg>
-                    Calcular Financiamento
-                </button>
-            </div>
-        </form>
-    );
-};
-
-export default InputForms;
