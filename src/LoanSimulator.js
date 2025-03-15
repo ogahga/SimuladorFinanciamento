@@ -1,3 +1,15 @@
+// Importar as funções de simulação
+import {
+  formatCurrency,
+  formatMonth,
+  expandAmortizationRanges,
+  simulateSac,
+  simulatePrice,
+  calculateAmortizationForTargetTerm,
+  calculateTotalSavings,
+  calculateSimulationSummary
+} from './simulationUtils';
+
 // Importações do React e componentes
 import React, { useState, useEffect } from 'react';
 import Modal from './components/Modal';
@@ -10,18 +22,6 @@ import About from './components/About';
 import AIReport from './components/reports/AIReport';
 import SystemComparison from './components/SystemComparison';
 import DatabaseIntegration from './components/DatabaseIntegration';
-
-// Importar as funções de simulação
-import {
-  formatCurrency,
-  formatMonth,
-  expandAmortizationRanges,
-  simulateSac,
-  simulatePrice,
-  calculateAmortizationForTargetTerm,
-  calculateTotalSavings,
-  calculateSimulationSummary
-} from './simulationUtils';
 
 const LoanSimulator = () => {
   // State para valores de entrada
