@@ -28,8 +28,8 @@ const LoanSimulator = () => {
   const [principal, setPrincipal] = useState(100000);
   const [term, setTerm] = useState(100);
   const [annualInterest, setAnnualInterest] = useState(0.1268);
-  const [annualCorrection, setAnnualCorrection] = useState(0.012);
-  const [insurance, setInsurance] = useState(100);
+  const [annualCorrection, setAnnualCorrection] = useState(0);  // Valor zerado por padrão
+  const [insurance, setInsurance] = useState(0);  // Valor zerado por padrão
   const [system, setSystem] = useState("sac");
   
   // State para modais e comparação
@@ -981,7 +981,7 @@ const LoanSimulator = () => {
                   <table className="min-w-full divide-y divide-gray-200 bg-white border rounded-lg shadow-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Mês/Range</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{width: "200px"}}>Mês/Range</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Valor</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Tipo</th>
                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Ações</th>
@@ -1065,7 +1065,9 @@ const LoanSimulator = () => {
                       className="text-red-600 hover:text-red-800 transition-colors"
                       title="Cancelar"
                       >
-                      ✕
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
                       </button>
                       </div>
                       </td>
